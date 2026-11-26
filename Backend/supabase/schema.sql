@@ -292,3 +292,12 @@ CREATE POLICY "review_logs_select_own" ON public.review_logs
 DROP POLICY IF EXISTS "review_logs_insert_own" ON public.review_logs;
 CREATE POLICY "review_logs_insert_own" ON public.review_logs
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================================
+-- 6. Role Grants (memastikan service_role & authenticated memiliki izin akses)
+-- ============================================================================
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;

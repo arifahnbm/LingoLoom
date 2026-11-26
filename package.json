@@ -1,0 +1,18 @@
+{
+  "name": "lingoloom",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LingoLoom Monorepo — Frontend (Next.js), Backend (Express + Supabase), AI (Gemini)",
+  "scripts": {
+    "ai": "npm --prefix AI run dev",
+    "backend": "npm --prefix Backend run dev",
+    "frontend": "npm --prefix Frontend run dev",
+    "dev": "node -e \"const { spawn } = require('child_process'); const services = [['AI', 'AI'], ['BACKEND', 'Backend'], ['FRONTEND', 'Frontend']]; const procs = services.map(([label, dir]) => { const p = spawn('npm', ['--prefix', dir, 'run', 'dev'], { stdio: 'inherit', shell: true }); p.on('exit', code => { if (code) console.error('[' + label + '] exited with code ' + code); }); return p; }); process.on('SIGINT', () => { procs.forEach(p => p.kill('SIGINT')); process.exit(); });\"",
+    "env": "node -e \"const fs = require('fs'); [['AI/.env.example','AI/.env'],['Backend/.env.example','Backend/.env'],['Frontend/.env.example','Frontend/.env.local']].forEach(([src,dst]) => { if (!fs.existsSync(dst)) { fs.copyFileSync(src, dst); console.log('+ Dibuat:', dst); } else { console.log('= Sudah ada:', dst); } });\"",
+    "install:all": "npm --prefix AI install && npm --prefix Backend install && npm --prefix Frontend install",
+    "build:ai": "npm --prefix AI run build",
+    "build:backend": "npm --prefix Backend run build",
+    "build:frontend": "npm --prefix Frontend run typecheck && npm --prefix Frontend run build",
+    "build": "npm run build:ai && npm run build:backend && npm run build:frontend"
+  }
+}

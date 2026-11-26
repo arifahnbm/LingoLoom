@@ -109,6 +109,19 @@ npm --prefix Frontend install
 
 ## 4. Menjalankan Ketiga Service Secara Bersamaan di Lokal
 
+### Cara Cepat (Dari Root `LingoLoom/`)
+Kamu bisa pakai `pnpm run` atau `npm run` langsung di terminal dari folder root `LingoLoom/`:
+
+```bash
+pnpm run env       # Salin .env.example -> .env / .env.local (tidak menimpa file yang sudah ada)
+pnpm run ai        # Jalankan AI Service (Port 5000)
+pnpm run backend   # Jalankan Backend API (Port 4000)
+pnpm run frontend  # Jalankan Frontend Web (Port 3000)
+pnpm run dev       # Jalankan ketiga service sekaligus di 1 terminal
+pnpm run build     # Typecheck & build ketiga service
+```
+
+### Cara Manual (3 Terminal Terpisah)
 Buka **3 terminal terpisah** di folder root `LingoLoom/`:
 
 - **Terminal 1 — AI Microservice (Port `5000`):**

@@ -55,7 +55,7 @@ export async function requireAuth(
     };
 
     // Pastikan profil user selalu ada (berguna jika akun dibuat sebelum SQL trigger dijalankan)
-    await supabaseAdmin
+    const { error: upsertError } = await supabaseAdmin
       .from('profiles')
       .upsert(
         {
@@ -66,6 +66,10 @@ export async function requireAuth(
         },
         { onConflict: 'id', ignoreDuplicates: true }
       );
+
+    if (upsertError) {
+      console.error('[requireAuth] Gagal upsert profiles:', upsertError);
+    }
 
     next();
   } catch (err) {

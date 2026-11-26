@@ -16,7 +16,8 @@ export async function getOrResetProfile(userId: string): Promise<Profile> {
     .single();
 
   if (error || !profile) {
-    throw new Error('Profil pengguna tidak ditemukan.');
+    console.error('[getOrResetProfile] Supabase error:', error);
+    throw new Error(error?.message || 'Profil pengguna tidak ditemukan.');
   }
 
   const today = getTodayIsoDate();
