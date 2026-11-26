@@ -8,10 +8,15 @@ import {
 } from '../types/ai';
 import { generateMockAutoFill, generateMockMicroStory } from './mockService';
 
-const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const DEFAULT_MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
-function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
+export interface DynamicGeminiConfig {
+  model?: string;
+  apiKey?: string;
+}
+
+function getGeminiClient(overrideApiKey?: string): GoogleGenAI | null {
+  const apiKey = overrideApiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
   if (!apiKey || apiKey === 'your-gemini-api-key') {
     return null;
   }
@@ -20,10 +25,12 @@ function getGeminiClient(): GoogleGenAI | null {
 
 export async function generateAutoFill(
   word: string,
-  context: AutoFillContext = 'daily'
+  context: AutoFillContext = 'daily',
+  runtimeConfig?: DynamicGeminiConfig
 ): Promise<AutoFillResponse> {
   const cleanedWord = word.trim();
-  const client = getGeminiClient();
+  const client = getGeminiClient(runtimeConfig?.apiKey);
+  const modelName = runtimeConfig?.model?.trim() || DEFAULT_MODEL_NAME;
 
   if (!client) {
     return generateMockAutoFill(cleanedWord, context);
@@ -37,7 +44,7 @@ export async function generateAutoFill(
 
   try {
     const response = await client.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: `Kamu adalah guru bahasa Inggris profesional untuk pembelajar Indonesia.
 Berikan informasi kosa kata yang akurat, ringkas, dan mudah dipahami untuk kata bahasa Inggris: "${cleanedWord}".
 Fokus konteks contoh kalimat: ${contextLabel[context]}.
@@ -96,16 +103,21 @@ Aturan:
       source: 'gemini',
     };
   } catch (error) {
-    console.error('[AI Auto-Fill] Gemini error, falling back to mock:', error);
+    console.error(
+      '[AI Auto-Fill] Gemini error, falling back to mock:',
+      error instanceof Error ? error.message : 'Unknown Gemini error'
+    );
     return generateMockAutoFill(cleanedWord, context);
   }
 }
 
 export async function generateMicroStory(
   words: StoryWordInput[],
-  level: StoryLevel = 'intermediate'
+  level: StoryLevel = 'intermediate',
+  runtimeConfig?: DynamicGeminiConfig
 ): Promise<MicroStoryResponse> {
-  const client = getGeminiClient();
+  const client = getGeminiClient(runtimeConfig?.apiKey);
+  const modelName = runtimeConfig?.model?.trim() || DEFAULT_MODEL_NAME;
 
   if (!client) {
     return generateMockMicroStory(words, level);
@@ -123,7 +135,7 @@ export async function generateMicroStory(
 
   try {
     const response = await client.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: `Kamu adalah penulis cerita edukatif bahasa Inggris untuk pembelajar Indonesia.
 Buat satu micro-story pendek (120-180 kata) dalam bahasa Inggris yang menarik, hangat, dan mudah diingat dengan level ${levelGuide[level]}.
 
@@ -179,7 +191,10 @@ Aturan:
       source: 'gemini',
     };
   } catch (error) {
-    console.error('[AI Micro-Story] Gemini error, falling back to mock:', error);
+    console.error(
+      '[AI Micro-Story] Gemini error, falling back to mock:',
+      error instanceof Error ? error.message : 'Unknown Gemini error'
+    );
     return generateMockMicroStory(words, level);
   }
 }

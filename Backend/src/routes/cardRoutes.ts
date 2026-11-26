@@ -18,6 +18,9 @@ const createCardSchema = z.object({
   synonyms: z.array(z.string().trim().min(1)).max(8).optional().default([]),
   examples: z.array(exampleSchema).max(4).optional().default([]),
   audio_url: z.string().url().nullable().optional().default(null),
+  source_sentence: z.string().trim().max(500).nullable().optional(),
+  source_url: z.string().url().max(1000).nullable().optional(),
+  source_type: z.enum(['web', 'extension']).optional(),
 });
 
 const updateCardSchema = createCardSchema.omit({ deck_id: true }).partial();

@@ -7,6 +7,7 @@ import {
   getQuotaSummary,
   incrementAutoFillUsage,
 } from '../services/quota';
+import { logAiUsage, resolveAiRuntimeConfig } from '../utils/planGuard';
 
 const router = Router();
 
@@ -17,10 +18,10 @@ const autoFillSchema = z.object({
 
 /**
  * POST /api/ai/auto-fill
- * 1. Cek Freemium Quota Guard (5x/hari untuk Free, unlimited untuk Pro).
- * 2. Cek Global Vocab Cache di tabel `vocab_cache` sebelum memanggil AI Service.
- * 3. Jika cache miss -> panggil service `AI/` -> simpan ke `vocab_cache`.
- * 4. Increment kuota harian jika user menggunakan paket Free.
+ * 1. Cek AI Kill Switch, Lazy Expiry & Kuota Dinamis (Free / Pro FUP) dari `app_settings`.
+ * 2. Cek Global Vocab Cache (`vocab_cache`) sebelum memanggil AI Service.
+ * 3. Jika cache miss -> panggil service `AI/` dengan model & key dinamis -> simpan ke `vocab_cache`.
+ * 4. Catat pemakaian ke `ai_usage_logs` & increment counter harian.
  */
 router.post('/auto-fill', async (req: Request, res: Response) => {
   const parsed = autoFillSchema.safeParse(req.body);
@@ -37,18 +38,18 @@ router.post('/auto-fill', async (req: Request, res: Response) => {
   const normalizedKey = word.trim().toLowerCase();
 
   try {
-    // 1. Cek kuota freemium
+    // 1. Cek AI Kill Switch & kuota dinamis
     const quotaCheck = await checkAutoFillQuota(userId);
     if (!quotaCheck.allowed) {
-      res.status(429).json({
+      res.status(quotaCheck.status || 429).json({
         error: quotaCheck.message,
-        code: 'QUOTA_EXCEEDED',
+        code: quotaCheck.code || 'QUOTA_EXCEEDED',
         quota: quotaCheck.quota,
       });
       return;
     }
 
-    // 2. Cek Global Vocab Cache (hanya untuk konteks daily atau exact word match)
+    // 2. Cek Global Vocab Cache (untuk konteks daily)
     const { data: cachedEntry } = await supabaseAdmin
       .from('vocab_cache')
       .select('*')
@@ -56,14 +57,14 @@ router.post('/auto-fill', async (req: Request, res: Response) => {
       .maybeSingle();
 
     if (cachedEntry && context === 'daily') {
-      if (!quotaCheck.quota.is_pro) {
-        await incrementAutoFillUsage(userId);
-      }
-      const updatedQuota = await getQuotaSummary(userId);
+      await Promise.all([
+        incrementAutoFillUsage(userId),
+        logAiUsage(userId, 'auto_fill', true),
+      ]);
+      const updatedQuota = await getQuotaSummary(userId, quotaCheck.settings);
 
       res.json({
-        word:
-          cachedEntry.word.charAt(0).toUpperCase() + cachedEntry.word.slice(1),
+        word: cachedEntry.word.charAt(0).toUpperCase() + cachedEntry.word.slice(1),
         phonetic: cachedEntry.phonetic,
         part_of_speech: cachedEntry.part_of_speech,
         meaning_id: cachedEntry.meaning_id,
@@ -76,28 +77,36 @@ router.post('/auto-fill', async (req: Request, res: Response) => {
       return;
     }
 
-    // 3. Cache miss -> panggil AI Microservice
-    const aiResult = await requestAIAutoFill(word, context);
+    // 3. Cache miss -> panggil AI Microservice dengan model & key dinamis dari app_settings
+    const runtimeConfig = resolveAiRuntimeConfig(quotaCheck.settings);
+    const aiResult = await requestAIAutoFill(word, context, runtimeConfig);
 
-    // 4. Simpan ke global vocab_cache agar pengguna lain bisa langsung hemat kuota AI
+    // 4. Simpan ke global vocab_cache + catat penggunaan
+    const tasks: Array<Promise<unknown>> = [
+      incrementAutoFillUsage(userId),
+      logAiUsage(userId, 'auto_fill', false),
+    ];
+
     if (context === 'daily' && aiResult.meaning_id) {
-      await supabaseAdmin.from('vocab_cache').upsert(
-        {
-          word: normalizedKey,
-          phonetic: aiResult.phonetic,
-          part_of_speech: aiResult.part_of_speech,
-          meaning_id: aiResult.meaning_id,
-          synonyms: aiResult.synonyms,
-          examples: aiResult.examples,
-        },
-        { onConflict: 'word' }
+      tasks.push(
+        Promise.resolve(
+          supabaseAdmin.from('vocab_cache').upsert(
+            {
+              word: normalizedKey,
+              phonetic: aiResult.phonetic,
+              part_of_speech: aiResult.part_of_speech,
+              meaning_id: aiResult.meaning_id,
+              synonyms: aiResult.synonyms,
+              examples: aiResult.examples,
+            },
+            { onConflict: 'word' }
+          )
+        )
       );
     }
 
-    if (!quotaCheck.quota.is_pro) {
-      await incrementAutoFillUsage(userId);
-    }
-    const updatedQuota = await getQuotaSummary(userId);
+    await Promise.all(tasks);
+    const updatedQuota = await getQuotaSummary(userId, quotaCheck.settings);
 
     res.json({
       ...aiResult,
@@ -105,7 +114,10 @@ router.post('/auto-fill', async (req: Request, res: Response) => {
       quota: updatedQuota,
     });
   } catch (error) {
-    console.error('[POST /api/ai/auto-fill] Error:', error);
+    console.error(
+      '[POST /api/ai/auto-fill] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     res.status(502).json({
       error:
         'Tidak dapat terhubung ke LingoLoop AI Service. Pastikan service AI berjalan di port 5000.',

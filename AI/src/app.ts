@@ -26,7 +26,7 @@ export function createApp() {
         callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS AI Service`));
       },
       methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-ai-service-secret'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-ai-service-secret', 'x-internal-secret'],
     })
   );
   app.use(express.json({ limit: '1mb' }));

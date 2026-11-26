@@ -4,12 +4,15 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { isSupabaseConfigured } from './config/supabase';
 import { requireAuth } from './middleware/auth';
+import { requireSuperAdmin } from './middleware/requireSuperAdmin';
 import profileRoutes from './routes/profileRoutes';
 import deckRoutes from './routes/deckRoutes';
 import cardRoutes from './routes/cardRoutes';
 import studyRoutes from './routes/studyRoutes';
 import aiProxyRoutes from './routes/aiProxyRoutes';
 import storyRoutes from './routes/storyRoutes';
+import publicRoutes from './routes/publicRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 export function createApp() {
   const app = express();
@@ -45,6 +48,9 @@ export function createApp() {
     });
   });
 
+  // Endpoint publik ringan (konfigurasi harga & WA tanpa data sensitif)
+  app.use('/api/public', publicRoutes);
+
   // Semua endpoint privat wajib melewati verifikasi JWT Supabase
   app.use('/api/profile', requireAuth, profileRoutes);
   app.use('/api/decks', requireAuth, deckRoutes);
@@ -52,6 +58,9 @@ export function createApp() {
   app.use('/api/study', requireAuth, studyRoutes);
   app.use('/api/ai', requireAuth, aiProxyRoutes);
   app.use('/api/stories', requireAuth, storyRoutes);
+
+  // Semua endpoint Super Admin wajib melewati verifikasi JWT + role === 'super_admin'
+  app.use('/api/admin', requireSuperAdmin, adminRoutes);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: 'Endpoint Backend tidak ditemukan.' });

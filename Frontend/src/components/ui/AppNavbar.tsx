@@ -3,20 +3,34 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BookMarked, Flame, LayoutDashboard, LogOut, Sparkles } from 'lucide-react';
+import {
+  BookMarked,
+  Flame,
+  LayoutDashboard,
+  LogOut,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { Logo } from './Logo';
 import { createClient } from '@/lib/supabase/client';
-import { UserPlan } from '@/types/lingoloop';
+import { UserPlan, UserRole } from '@/types/lingoloop';
 
 interface AppNavbarProps {
   streakCount?: number;
   plan?: UserPlan;
+  role?: UserRole;
   userEmail?: string;
 }
 
-export function AppNavbar({ streakCount = 0, plan = 'free', userEmail }: AppNavbarProps) {
+export function AppNavbar({
+  streakCount = 0,
+  plan = 'free',
+  role = 'user',
+  userEmail,
+}: AppNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const isSuperAdmin = role === 'super_admin';
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -57,7 +71,22 @@ export function AppNavbar({ streakCount = 0, plan = 'free', userEmail }: AppNavb
           </nav>
         </div>
 
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Shortcut Panel Admin — hanya tampil untuk super_admin */}
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black transition-all ${
+                pathname?.startsWith('/admin')
+                  ? 'border-violet-400 bg-violet-600 text-white'
+                  : 'border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300 hover:bg-violet-100'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />
+              <span className="hidden sm:inline">Panel Admin</span>
+            </Link>
+          )}
+
           {/* Daily Streak Badge */}
           <div
             title="Daily Streak Belajar"
@@ -98,7 +127,9 @@ export function AppNavbar({ streakCount = 0, plan = 'free', userEmail }: AppNavb
 
       {/* Mobile Bottom-style Subnav inside header */}
       <div className="flex border-t border-slate-100 bg-white px-4 py-2 sm:hidden">
-        <div className="grid w-full grid-cols-2 gap-2">
+        <div
+          className={`grid w-full gap-2 ${isSuperAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname?.startsWith(item.href);
@@ -117,6 +148,19 @@ export function AppNavbar({ streakCount = 0, plan = 'free', userEmail }: AppNavb
               </Link>
             );
           })}
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className={`inline-flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-extrabold ${
+                pathname?.startsWith('/admin')
+                  ? 'border-2 border-violet-300 bg-violet-100 text-violet-700'
+                  : 'border-2 border-violet-100 bg-violet-50/70 text-violet-700'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </div>
       </div>
     </header>

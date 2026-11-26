@@ -7,6 +7,12 @@ import {
 
 const AI_SERVICE_URL = (process.env.AI_SERVICE_URL || 'http://localhost:5000').replace(/\/$/, '');
 const AI_SERVICE_SECRET = process.env.AI_SERVICE_SECRET?.trim();
+const INTERNAL_AI_SECRET = process.env.INTERNAL_AI_SECRET?.trim();
+
+export interface AIRuntimeConfig {
+  model?: string;
+  apiKey?: string;
+}
 
 export interface AIAutoFillPayload {
   word: string;
@@ -33,27 +39,34 @@ function buildHeaders(): Record<string, string> {
   if (AI_SERVICE_SECRET) {
     headers['x-ai-service-secret'] = AI_SERVICE_SECRET;
   }
+  if (INTERNAL_AI_SECRET) {
+    headers['x-internal-secret'] = INTERNAL_AI_SECRET;
+  }
   return headers;
 }
 
 export async function requestAIAutoFill(
   word: string,
-  context: AutoFillContext = 'daily'
+  context: AutoFillContext = 'daily',
+  runtimeConfig?: AIRuntimeConfig
 ): Promise<AIAutoFillPayload> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
+    const payload: Record<string, unknown> = { word, context };
+    if (runtimeConfig?.model) payload.model = runtimeConfig.model;
+    if (runtimeConfig?.apiKey) payload.apiKey = runtimeConfig.apiKey;
+
     const response = await fetch(`${AI_SERVICE_URL}/api/ai/auto-fill`, {
       method: 'POST',
       headers: buildHeaders(),
-      body: JSON.stringify({ word, context }),
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`AI Service error (${response.status}): ${errorBody}`);
+      throw new Error(`AI Service returned status ${response.status}`);
     }
 
     return (await response.json()) as AIAutoFillPayload;
@@ -64,22 +77,26 @@ export async function requestAIAutoFill(
 
 export async function requestAIMicroStory(
   words: Array<{ word: string; meaning_id: string }>,
-  level: StoryLevel = 'intermediate'
+  level: StoryLevel = 'intermediate',
+  runtimeConfig?: AIRuntimeConfig
 ): Promise<AIMicroStoryPayload> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
 
   try {
+    const payload: Record<string, unknown> = { words, level };
+    if (runtimeConfig?.model) payload.model = runtimeConfig.model;
+    if (runtimeConfig?.apiKey) payload.apiKey = runtimeConfig.apiKey;
+
     const response = await fetch(`${AI_SERVICE_URL}/api/ai/micro-story`, {
       method: 'POST',
       headers: buildHeaders(),
-      body: JSON.stringify({ words, level }),
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`AI Service error (${response.status}): ${errorBody}`);
+      throw new Error(`AI Service returned status ${response.status}`);
     }
 
     return (await response.json()) as AIMicroStoryPayload;

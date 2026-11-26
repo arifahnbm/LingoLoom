@@ -1,8 +1,10 @@
 import { supabaseAdmin } from '../config/supabase';
-import { Profile, QuotaSummary } from '../types/models';
-
-const FREE_DAILY_AUTOFILL_LIMIT = Number(process.env.FREE_DAILY_AUTOFILL_LIMIT) || 5;
-const FREE_WEEKLY_STORY_LIMIT = Number(process.env.FREE_WEEKLY_STORY_LIMIT) || 1;
+import { AppSettingsRow, Profile, QuotaSummary } from '../types/models';
+import {
+  AI_MAINTENANCE_MESSAGE,
+  getAppSettings,
+  getEffectivePlan,
+} from '../utils/planGuard';
 
 export function getTodayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -56,48 +58,101 @@ export async function getWeeklyStoryCount(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-export async function getQuotaSummary(userId: string): Promise<QuotaSummary> {
-  const profile = await getOrResetProfile(userId);
-  const usedStoriesThisWeek = await getWeeklyStoryCount(userId);
-  const isPro = profile.plan === 'pro';
+export async function getDailyStoryCount(userId: string): Promise<number> {
+  const startOfTodayUtc = `${getTodayIsoDate()}T00:00:00.000Z`;
+  const { count, error } = await supabaseAdmin
+    .from('micro_stories')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', startOfTodayUtc);
+
+  if (error) {
+    console.error('[Quota] Failed to count daily micro_stories:', error);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
+export async function getQuotaSummary(
+  userId: string,
+  prefetchedSettings?: AppSettingsRow
+): Promise<QuotaSummary> {
+  const [profile, settings, usedStoriesThisWeek, usedStoriesToday] = await Promise.all([
+    getOrResetProfile(userId),
+    prefetchedSettings ? Promise.resolve(prefetchedSettings) : getAppSettings(),
+    getWeeklyStoryCount(userId),
+    getDailyStoryCount(userId),
+  ]);
+
+  const effectivePlan = getEffectivePlan(profile);
+  const isPro = effectivePlan === 'pro';
+
+  const autofillLimit = isPro
+    ? settings.pro_autofill_daily_fup
+    : settings.free_autofill_daily_limit;
+
+  const storyUsed = isPro ? usedStoriesToday : usedStoriesThisWeek;
+  const storyLimit = isPro
+    ? settings.pro_story_daily_fup
+    : settings.free_story_weekly_limit;
 
   return {
-    plan: profile.plan,
+    plan: effectivePlan,
     is_pro: isPro,
+    plan_expires_at: isPro ? profile.plan_expires_at || null : null,
+    ai_enabled: settings.ai_enabled,
     autofill: {
       used_today: profile.ai_autofill_used_today,
-      daily_limit: isPro ? null : FREE_DAILY_AUTOFILL_LIMIT,
-      remaining: isPro
-        ? null
-        : Math.max(0, FREE_DAILY_AUTOFILL_LIMIT - profile.ai_autofill_used_today),
+      daily_limit: autofillLimit,
+      remaining: Math.max(0, autofillLimit - profile.ai_autofill_used_today),
     },
     micro_stories: {
-      used_this_week: usedStoriesThisWeek,
-      weekly_limit: isPro ? null : FREE_WEEKLY_STORY_LIMIT,
-      remaining: isPro ? null : Math.max(0, FREE_WEEKLY_STORY_LIMIT - usedStoriesThisWeek),
+      used_this_week: storyUsed,
+      weekly_limit: storyLimit,
+      remaining: Math.max(0, storyLimit - storyUsed),
     },
   };
 }
 
 export async function checkAutoFillQuota(userId: string): Promise<{
   allowed: boolean;
+  status?: number;
+  code?: string;
   quota: QuotaSummary;
+  settings: AppSettingsRow;
   message?: string;
 }> {
-  const quota = await getQuotaSummary(userId);
-  if (quota.is_pro) {
-    return { allowed: true, quota };
-  }
+  const settings = await getAppSettings();
+  const quota = await getQuotaSummary(userId, settings);
 
-  if ((quota.autofill.remaining ?? 0) <= 0) {
+  if (!settings.ai_enabled) {
     return {
       allowed: false,
+      status: 503,
+      code: 'AI_DISABLED',
       quota,
-      message: `Kuota AI Auto-Fill harian paket Gratis (${FREE_DAILY_AUTOFILL_LIMIT}x/hari) sudah habis. Upgrade ke Pro untuk AI Auto-Fill tanpa batas, atau isi kartu secara manual!`,
+      settings,
+      message: AI_MAINTENANCE_MESSAGE,
     };
   }
 
-  return { allowed: true, quota };
+  if ((quota.autofill.remaining ?? 0) <= 0) {
+    const message = quota.is_pro
+      ? `Batas wajar harian (Fair Usage Policy) AI Auto-Fill Pro (${settings.pro_autofill_daily_fup}x/hari) telah tercapai. Kuota akan otomatis reset besok!`
+      : `Kuota AI Auto-Fill harian paket Gratis (${settings.free_autofill_daily_limit}x/hari) sudah habis. Upgrade ke Pro untuk kuota lebih besar, atau isi kartu secara manual!`;
+
+    return {
+      allowed: false,
+      status: 429,
+      code: 'QUOTA_EXCEEDED',
+      quota,
+      settings,
+      message,
+    };
+  }
+
+  return { allowed: true, quota, settings };
 }
 
 export async function incrementAutoFillUsage(userId: string): Promise<void> {
@@ -113,21 +168,40 @@ export async function incrementAutoFillUsage(userId: string): Promise<void> {
 
 export async function checkMicroStoryQuota(userId: string): Promise<{
   allowed: boolean;
+  status?: number;
+  code?: string;
   quota: QuotaSummary;
+  settings: AppSettingsRow;
   message?: string;
 }> {
-  const quota = await getQuotaSummary(userId);
-  if (quota.is_pro) {
-    return { allowed: true, quota };
-  }
+  const settings = await getAppSettings();
+  const quota = await getQuotaSummary(userId, settings);
 
-  if ((quota.micro_stories.remaining ?? 0) <= 0) {
+  if (!settings.ai_enabled) {
     return {
       allowed: false,
+      status: 503,
+      code: 'AI_DISABLED',
       quota,
-      message: `Kuota Micro-Story paket Gratis (${FREE_WEEKLY_STORY_LIMIT}x/minggu) sudah terpakai. Upgrade ke LingoLoop Pro untuk membuat cerita AI tanpa batas!`,
+      settings,
+      message: AI_MAINTENANCE_MESSAGE,
     };
   }
 
-  return { allowed: true, quota };
+  if ((quota.micro_stories.remaining ?? 0) <= 0) {
+    const message = quota.is_pro
+      ? `Batas wajar harian Micro-Story Pro (${settings.pro_story_daily_fup}x/hari) telah tercapai. Coba lagi besok!`
+      : `Kuota Micro-Story paket Gratis (${settings.free_story_weekly_limit}x/minggu) sudah terpakai. Upgrade ke LingoLoop Pro untuk membuat cerita AI lebih banyak!`;
+
+    return {
+      allowed: false,
+      status: 429,
+      code: 'QUOTA_EXCEEDED',
+      quota,
+      settings,
+      message,
+    };
+  }
+
+  return { allowed: true, quota, settings };
 }

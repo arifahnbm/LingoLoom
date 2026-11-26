@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 import {
+  AdminStats,
+  AdminTransactionsResponse,
+  AdminUserItem,
   AutoFillContext,
   AutoFillResult,
   Deck,
@@ -7,9 +10,12 @@ import {
   Flashcard,
   MicroStory,
   ProfileOverviewResponse,
+  PublicAppConfig,
   QuotaSummary,
   ReviewRating,
+  SafeAppSettings,
   StoryLevel,
+  SubscriptionAction,
 } from '@/types/lingoloop';
 
 const API_BASE_URL = (
@@ -76,6 +82,14 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
 }
 
 export const lingoloopApi = {
+  getPublicConfig: async (): Promise<PublicAppConfig> => {
+    const response = await fetch(`${API_BASE_URL}/api/public/config`);
+    if (!response.ok) {
+      throw new ApiError('Gagal memuat konfigurasi publik.', response.status);
+    }
+    return (await response.json()) as PublicAppConfig;
+  },
+
   getProfileOverview: () => apiRequest<ProfileOverviewResponse>('/api/profile'),
 
   getDecks: () => apiRequest<{ decks: Deck[] }>('/api/decks'),
@@ -168,5 +182,55 @@ export const lingoloopApi = {
   deleteStory: (storyId: string) =>
     apiRequest<{ deleted: boolean }>(`/api/stories/${storyId}`, {
       method: 'DELETE',
+    }),
+
+  // =========================================================================
+  // Super Admin APIs (/api/admin/*)
+  // =========================================================================
+  getAdminStats: () => apiRequest<AdminStats>('/api/admin/stats'),
+
+  getAdminUsers: (search = '', plan = 'all') => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set('search', search.trim());
+    if (plan && plan !== 'all') params.set('plan', plan);
+    const qs = params.toString();
+    return apiRequest<{ users: AdminUserItem[] }>(`/api/admin/users${qs ? `?${qs}` : ''}`);
+  },
+
+  updateUserSubscription: (
+    userId: string,
+    payload: {
+      action: SubscriptionAction;
+      amount_idr?: number;
+      notes?: string;
+    }
+  ) =>
+    apiRequest<{ user: AdminUserItem; transaction: unknown }>(
+      `/api/admin/users/${userId}/subscription`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  getAdminTransactions: () => apiRequest<AdminTransactionsResponse>('/api/admin/transactions'),
+
+  getAdminSettings: () => apiRequest<{ settings: SafeAppSettings }>('/api/admin/settings'),
+
+  updateAdminSettings: (payload: {
+    ai_enabled?: boolean;
+    ai_model?: string;
+    new_gemini_api_key?: string;
+    clear_custom_api_key?: boolean;
+    free_autofill_daily_limit?: number;
+    free_story_weekly_limit?: number;
+    pro_autofill_daily_fup?: number;
+    pro_story_daily_fup?: number;
+    whatsapp_admin_number?: string;
+    pro_price_idr?: number;
+  }) =>
+    apiRequest<{ settings: SafeAppSettings }>('/api/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
     }),
 };

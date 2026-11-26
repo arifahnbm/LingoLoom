@@ -117,6 +117,7 @@ export default function StoriesPage() {
       <AppNavbar
         streakCount={overview?.stats.streak_count ?? 0}
         plan={overview?.profile.plan || 'free'}
+        role={overview?.profile.role || 'user'}
         userEmail={overview?.profile.email}
       />
 

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase';
 import { getOrResetProfile, getQuotaSummary } from '../services/quota';
+import { getEffectivePlan } from '../utils/planGuard';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
         .eq('user_id', userId),
     ]);
 
+    const effectivePlan = getEffectivePlan(profile);
     const cards = cardsRes.data || [];
     const now = new Date();
 
@@ -28,7 +30,12 @@ router.get('/', async (req: Request, res: Response) => {
     ).length;
 
     res.json({
-      profile,
+      profile: {
+        ...profile,
+        role: profile.role || 'user',
+        plan: effectivePlan,
+        plan_expires_at: effectivePlan === 'pro' ? profile.plan_expires_at || null : null,
+      },
       stats: {
         streak_count: profile.streak_count,
         last_study_date: profile.last_study_date,

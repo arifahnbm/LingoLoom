@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase';
 import { requestAIMicroStory } from '../services/aiClient';
 import { checkMicroStoryQuota, getQuotaSummary } from '../services/quota';
+import { logAiUsage, resolveAiRuntimeConfig } from '../utils/planGuard';
 
 const router = Router();
 
@@ -43,9 +44,9 @@ router.get('/', async (req: Request, res: Response) => {
 /**
  * POST /api/stories/generate
  * Micro-Stories Orchestrator:
- * 1. Cek Freemium Quota Guard (1x/minggu untuk Free, unlimited untuk Pro).
+ * 1. Cek AI Kill Switch, Lazy Expiry & Kuota Dinamis (Free mingguan / Pro FUP harian).
  * 2. Ambil 5–7 kata dengan lapses tertinggi atau kartu terbaru milik user.
- * 3. Kirim ke service AI/ -> simpan ke `micro_stories` -> kembalikan hasil.
+ * 3. Kirim ke service AI/ dengan model & key dinamis -> simpan ke `micro_stories` -> catat `ai_usage_logs`.
  */
 router.post('/generate', async (req: Request, res: Response) => {
   const parsed = generateStorySchema.safeParse(req.body || {});
@@ -58,12 +59,12 @@ router.post('/generate', async (req: Request, res: Response) => {
   const { level, deck_id } = parsed.data;
 
   try {
-    // 1. Cek kuota mingguan
+    // 1. Cek AI Kill Switch & kuota
     const quotaCheck = await checkMicroStoryQuota(userId);
     if (!quotaCheck.allowed) {
-      res.status(429).json({
+      res.status(quotaCheck.status || 429).json({
         error: quotaCheck.message,
-        code: 'QUOTA_EXCEEDED',
+        code: quotaCheck.code || 'QUOTA_EXCEEDED',
         quota: quotaCheck.quota,
       });
       return;
@@ -89,7 +90,6 @@ router.post('/generate', async (req: Request, res: Response) => {
       return;
     }
 
-    // Deduplikasi kata (case-insensitive)
     const uniqueWordsMap = new Map<string, { word: string; meaning_id: string }>();
     for (const c of userCards || []) {
       const key = c.word.trim().toLowerCase();
@@ -112,36 +112,43 @@ router.post('/generate', async (req: Request, res: Response) => {
       return;
     }
 
-    // 3. Panggil AI Microservice
-    const generated = await requestAIMicroStory(selectedWords, level);
+    // 3. Panggil AI Microservice dengan model & key dinamis dari app_settings
+    const runtimeConfig = resolveAiRuntimeConfig(quotaCheck.settings);
+    const generated = await requestAIMicroStory(selectedWords, level, runtimeConfig);
 
-    // 4. Simpan ke database Supabase
-    const { data: savedStory, error: saveError } = await supabaseAdmin
-      .from('micro_stories')
-      .insert({
-        user_id: userId,
-        title: generated.title,
-        story_en: generated.story_en,
-        story_id: generated.story_id,
-        target_words: generated.highlighted_words,
-      })
-      .select('*')
-      .single();
+    // 4. Simpan ke database Supabase & catat log penggunaan AI
+    const [saveRes] = await Promise.all([
+      supabaseAdmin
+        .from('micro_stories')
+        .insert({
+          user_id: userId,
+          title: generated.title,
+          story_en: generated.story_en,
+          story_id: generated.story_id,
+          target_words: generated.highlighted_words,
+        })
+        .select('*')
+        .single(),
+      logAiUsage(userId, 'micro_story', false),
+    ]);
 
-    if (saveError || !savedStory) {
-      res.status(500).json({ error: saveError?.message || 'Gagal menyimpan Micro-Story.' });
+    if (saveRes.error || !saveRes.data) {
+      res.status(500).json({ error: saveRes.error?.message || 'Gagal menyimpan Micro-Story.' });
       return;
     }
 
-    const updatedQuota = await getQuotaSummary(userId);
+    const updatedQuota = await getQuotaSummary(userId, quotaCheck.settings);
 
     res.status(201).json({
-      story: savedStory,
+      story: saveRes.data,
       source: generated.source || 'gemini',
       quota: updatedQuota,
     });
   } catch (error) {
-    console.error('[POST /api/stories/generate] Error:', error);
+    console.error(
+      '[POST /api/stories/generate] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     res.status(502).json({
       error:
         'Gagal menghubungi LingoLoop AI Service untuk menyusun cerita. Pastikan service AI berjalan di port 5000.',

@@ -155,6 +155,7 @@ export default function DashboardPage() {
       <AppNavbar
         streakCount={streakCount}
         plan={overview?.profile.plan || 'free'}
+        role={overview?.profile.role || 'user'}
         userEmail={overview?.profile.email}
       />
 
