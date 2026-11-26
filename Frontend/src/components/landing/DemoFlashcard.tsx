@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, RotateCw, Sparkles, Volume2 } from 'lucide-react';
 import { speakEnglish } from '@/lib/speech';
 import { renderHighlightedSentence } from '@/lib/highlight';
-import { SpeechAccent } from '@/types/lingoloom';
+import { SpeechAccent } from '@/types/lingoloop';
 
 interface DemoCardData {
   word: string;

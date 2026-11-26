@@ -1,8 +1,8 @@
 {
-  "name": "lingoloom",
+  "name": "lingoloop",
   "version": "1.0.0",
   "private": true,
-  "description": "LingoLoom Monorepo — Frontend (Next.js), Backend (Express + Supabase), AI (Gemini)",
+  "description": "LingoLoop Monorepo — Frontend (Next.js), Backend (Express + Supabase), AI (Gemini)",
   "scripts": {
     "ai": "npm --prefix AI run dev",
     "backend": "npm --prefix Backend run dev",

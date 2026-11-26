@@ -38,7 +38,7 @@ export function formatIntervalIndonesian(days: number, isMinutes = false): strin
 }
 
 /**
- * Algoritma SM-2 Spaced Repetition untuk 4 tombol evaluasi LingoLoom:
+ * Algoritma SM-2 Spaced Repetition untuk 4 tombol evaluasi LingoLoop:
  * - again (Lupa): reset repetisi, tambah lapses, ulang dalam 10 menit
  * - hard  (Susah): sedikit perkecil ease_factor, perpanjang interval lebih konservatif
  * - good  (Ingat): progres standar SM-2 (1 hari -> 6 hari -> interval * ease_factor)

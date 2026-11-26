@@ -50,7 +50,7 @@ export function createApp() {
     );
     res.json({
       status: 'ok',
-      service: 'lingoloom-ai',
+      service: 'lingoloop-ai',
       mode: hasGeminiKey ? 'gemini' : 'mock-fallback',
       model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
     });

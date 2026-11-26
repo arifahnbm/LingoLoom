@@ -1,5 +1,5 @@
 import React from 'react';
-import { HighlightedWord } from '@/types/lingoloom';
+import { HighlightedWord } from '@/types/lingoloop';
 
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

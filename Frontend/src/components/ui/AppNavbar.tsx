@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { BookMarked, Flame, LayoutDashboard, LogOut, Sparkles } from 'lucide-react';
 import { Logo } from './Logo';
 import { createClient } from '@/lib/supabase/client';
-import { UserPlan } from '@/types/lingoloom';
+import { UserPlan } from '@/types/lingoloop';
 
 interface AppNavbarProps {
   streakCount?: number;

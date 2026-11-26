@@ -74,7 +74,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-5 max-w-xl text-base font-bold leading-relaxed text-slate-600 sm:text-lg">
-                LingoLoom menggabungkan <strong>Flashcard SRS pintar (SM-2)</strong>,{' '}
+                LingoLoop menggabungkan <strong>Flashcard SRS pintar (SM-2)</strong>,{' '}
                 <strong>AI Auto-Fill 5 Detik</strong>, dan{' '}
                 <strong>Contextual Micro-Stories</strong> agar setiap kata baru langsung
                 melekat di memori jangka panjangmu.
@@ -126,7 +126,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#0284C7]">
-                <Zap className="h-3.5 w-3.5" />3 Pilar LingoLoom
+                <Zap className="h-3.5 w-3.5" />3 Pilar LingoLoop
               </span>
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
                 Dirancang agar Otakmu Belajar Lebih Ringan, Bukan Lebih Keras
@@ -319,7 +319,7 @@ export default function LandingPage() {
                 <div>
                   <span className="inline-flex items-center gap-1 rounded-xl bg-violet-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-violet-700">
                     <Sparkles className="h-3.5 w-3.5" />
-                    LingoLoom Pro
+                    LingoLoop Pro
                   </span>
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-4xl font-black text-slate-900">Rp 39rb</span>
@@ -352,7 +352,7 @@ export default function LandingPage() {
                   className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-b-4 border-[#6D28D9] bg-[#8B5CF6] px-5 py-3.5 text-base font-black text-white transition-all hover:bg-[#7C3AED] active:translate-y-1 active:border-b-0"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Coba LingoLoom Sekarang
+                  Coba LingoLoop Sekarang
                 </Link>
               </div>
             </div>

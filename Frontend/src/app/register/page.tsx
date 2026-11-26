@@ -52,7 +52,7 @@ export default function RegisterPage() {
         router.refresh();
       } else {
         setInfoMsg(
-          'Akun berhasil dibuat! Cek inbox emailmu untuk konfirmasi, lalu masuk ke LingoLoom.'
+          'Akun berhasil dibuat! Cek inbox emailmu untuk konfirmasi, lalu masuk ke LingoLoop.'
         );
       }
     } catch {

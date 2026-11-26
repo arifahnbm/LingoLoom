@@ -24,8 +24,8 @@ import { QuickAddVocab } from '@/components/dashboard/QuickAddVocab';
 import { CreateDeckModal } from '@/components/dashboard/CreateDeckModal';
 import { DeckCardsModal } from '@/components/dashboard/DeckCardsModal';
 import { createClient } from '@/lib/supabase/client';
-import { ApiError, lingoloomApi } from '@/lib/api';
-import { Deck, ProfileOverviewResponse, QuotaSummary } from '@/types/lingoloom';
+import { ApiError, lingoloopApi } from '@/lib/api';
+import { Deck, ProfileOverviewResponse, QuotaSummary } from '@/types/lingoloop';
 
 const THEME_STYLES: Record<
   string,
@@ -98,8 +98,8 @@ export default function DashboardPage() {
       }
 
       const [profileRes, decksRes] = await Promise.all([
-        lingoloomApi.getProfileOverview(),
-        lingoloomApi.getDecks(),
+        lingoloopApi.getProfileOverview(),
+        lingoloopApi.getDecks(),
       ]);
 
       setOverview(profileRes);
@@ -134,7 +134,7 @@ export default function DashboardPage() {
     if (!confirmed) return;
 
     try {
-      await lingoloomApi.deleteDeck(deck.id);
+      await lingoloopApi.deleteDeck(deck.id);
       await loadDashboard();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menghapus deck.');

@@ -1,8 +1,8 @@
 {
-  "name": "lingoloom-backend",
+  "name": "lingoloop-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "LingoLoom Backend REST API (Express + TypeScript + Supabase + SM-2 SRS)",
+  "description": "LingoLoop Backend REST API (Express + TypeScript + Supabase + SM-2 SRS)",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",

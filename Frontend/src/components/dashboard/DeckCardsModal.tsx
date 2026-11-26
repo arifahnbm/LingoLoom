@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { Trash2, Volume2, X } from 'lucide-react';
-import { lingoloomApi } from '@/lib/api';
+import { lingoloopApi } from '@/lib/api';
 import { speakEnglish } from '@/lib/speech';
-import { Deck, Flashcard } from '@/types/lingoloom';
+import { Deck, Flashcard } from '@/types/lingoloop';
 
 interface DeckCardsModalProps {
   deck: Deck | null;
@@ -19,7 +19,7 @@ export function DeckCardsModal({ deck, onClose, onChanged }: DeckCardsModalProps
   useEffect(() => {
     if (!deck) return;
     setLoading(true);
-    lingoloomApi
+    lingoloopApi
       .getDeckCards(deck.id)
       .then((res) => setCards(res.cards))
       .catch(() => setCards([]))
@@ -29,7 +29,7 @@ export function DeckCardsModal({ deck, onClose, onChanged }: DeckCardsModalProps
   if (!deck) return null;
 
   const handleDeleteCard = async (cardId: string) => {
-    await lingoloomApi.deleteCard(cardId);
+    await lingoloopApi.deleteCard(cardId);
     setCards((prev) => prev.filter((c) => c.id !== cardId));
     onChanged();
   };

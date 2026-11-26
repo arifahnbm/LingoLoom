@@ -10,7 +10,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'LingoLoom — Hafal Kosa Kata Inggris Tanpa Gampang Lupa',
+  title: 'LingoLoop — Hafal Kosa Kata Inggris Tanpa Gampang Lupa',
   description:
     'Belajar kosa kata bahasa Inggris lebih cepat dan melekat lama dengan Flashcard SRS SM-2, AI Auto-Fill 5 Detik, dan Contextual Micro-Stories.',
 };

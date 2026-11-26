@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { RotateCw, Volume2 } from 'lucide-react';
 import { speakEnglish } from '@/lib/speech';
 import { renderHighlightedSentence } from '@/lib/highlight';
-import { Flashcard, SpeechAccent } from '@/types/lingoloom';
+import { Flashcard, SpeechAccent } from '@/types/lingoloop';
 
 interface Flashcard3DProps {
   card: Flashcard;

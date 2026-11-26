@@ -1,8 +1,8 @@
 {
-  "name": "lingoloom-ai",
+  "name": "lingoloop-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "LingoLoom AI Microservice (Gemini API + Structured JSON + Mock Fallback)",
+  "description": "LingoLoop AI Microservice (Gemini API + Structured JSON + Mock Fallback)",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",

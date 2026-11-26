@@ -10,7 +10,7 @@ import {
   QuotaSummary,
   ReviewRating,
   StoryLevel,
-} from '@/types/lingoloom';
+} from '@/types/lingoloop';
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
@@ -55,7 +55,7 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
     });
   } catch {
     throw new ApiError(
-      'Tidak dapat terhubung ke server Backend LingoLoom. Pastikan Backend berjalan di port 4000.',
+      'Tidak dapat terhubung ke server Backend LingoLoop. Pastikan Backend berjalan di port 4000.',
       0,
       'NETWORK_ERROR'
     );
@@ -75,7 +75,7 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
   return data as T;
 }
 
-export const lingoloomApi = {
+export const lingoloopApi = {
   getProfileOverview: () => apiRequest<ProfileOverviewResponse>('/api/profile'),
 
   getDecks: () => apiRequest<{ decks: Deck[] }>('/api/decks'),

@@ -1,6 +1,6 @@
 'use client';
 
-import { SpeechAccent } from '@/types/lingoloom';
+import { SpeechAccent } from '@/types/lingoloop';
 
 let currentAudio: HTMLAudioElement | null = null;
 

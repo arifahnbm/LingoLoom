@@ -11,14 +11,14 @@ import {
   X,
 } from 'lucide-react';
 import { TactileButton } from '@/components/ui/TactileButton';
-import { ApiError, lingoloomApi } from '@/lib/api';
+import { ApiError, lingoloopApi } from '@/lib/api';
 import { speakEnglish } from '@/lib/speech';
 import {
   AutoFillContext,
   Deck,
   ExampleSentence,
   QuotaSummary,
-} from '@/types/lingoloom';
+} from '@/types/lingoloop';
 
 interface QuickAddVocabProps {
   decks: Deck[];
@@ -90,7 +90,7 @@ export function QuickAddVocab({
     setIsAutoFilling(true);
 
     try {
-      const result = await lingoloomApi.autoFillVocab(cleaned, context);
+      const result = await lingoloopApi.autoFillVocab(cleaned, context);
       setWord(result.word || cleaned);
       setPhonetic(result.phonetic || '');
       setPartOfSpeech(result.part_of_speech || '');
@@ -148,7 +148,7 @@ export function QuickAddVocab({
         .map((s) => s.trim())
         .filter(Boolean);
 
-      await lingoloomApi.createCard({
+      await lingoloopApi.createCard({
         deck_id: selectedDeckId,
         word: word.trim(),
         phonetic: phonetic.trim(),

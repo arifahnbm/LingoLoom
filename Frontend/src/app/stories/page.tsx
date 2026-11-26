@@ -15,13 +15,13 @@ import { AppNavbar } from '@/components/ui/AppNavbar';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { InteractiveStoryReader } from '@/components/stories/InteractiveStoryReader';
 import { createClient } from '@/lib/supabase/client';
-import { ApiError, lingoloomApi } from '@/lib/api';
+import { ApiError, lingoloopApi } from '@/lib/api';
 import {
   MicroStory,
   ProfileOverviewResponse,
   QuotaSummary,
   StoryLevel,
-} from '@/types/lingoloom';
+} from '@/types/lingoloop';
 
 export default function StoriesPage() {
   const router = useRouter();
@@ -46,8 +46,8 @@ export default function StoriesPage() {
       }
 
       const [profileRes, storiesRes] = await Promise.all([
-        lingoloomApi.getProfileOverview(),
-        lingoloomApi.getStories(),
+        lingoloopApi.getProfileOverview(),
+        lingoloopApi.getStories(),
       ]);
 
       setOverview(profileRes);
@@ -75,7 +75,7 @@ export default function StoriesPage() {
     setError('');
     setGenerating(true);
     try {
-      const res = await lingoloomApi.generateStory(level);
+      const res = await lingoloopApi.generateStory(level);
       setStories((prev) => [res.story, ...prev]);
       setActiveStoryId(res.story.id);
       setQuota(res.quota);
@@ -92,7 +92,7 @@ export default function StoriesPage() {
   };
 
   const handleDeleteStory = async (storyId: string) => {
-    await lingoloomApi.deleteStory(storyId);
+    await lingoloopApi.deleteStory(storyId);
     setStories((prev) => {
       const next = prev.filter((s) => s.id !== storyId);
       if (activeStoryId === storyId) {

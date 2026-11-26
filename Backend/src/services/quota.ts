@@ -125,7 +125,7 @@ export async function checkMicroStoryQuota(userId: string): Promise<{
     return {
       allowed: false,
       quota,
-      message: `Kuota Micro-Story paket Gratis (${FREE_WEEKLY_STORY_LIMIT}x/minggu) sudah terpakai. Upgrade ke LingoLoom Pro untuk membuat cerita AI tanpa batas!`,
+      message: `Kuota Micro-Story paket Gratis (${FREE_WEEKLY_STORY_LIMIT}x/minggu) sudah terpakai. Upgrade ke LingoLoop Pro untuk membuat cerita AI tanpa batas!`,
     };
   }
 

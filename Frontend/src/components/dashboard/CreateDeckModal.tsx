@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { TactileButton } from '@/components/ui/TactileButton';
-import { lingoloomApi } from '@/lib/api';
+import { lingoloopApi } from '@/lib/api';
 
 interface CreateDeckModalProps {
   isOpen: boolean;
@@ -58,7 +58,7 @@ export function CreateDeckModal({ isOpen, onClose, onCreated }: CreateDeckModalP
     setIsSubmitting(true);
     setError('');
     try {
-      await lingoloomApi.createDeck({
+      await lingoloopApi.createDeck({
         title: title.trim(),
         description: description.trim(),
         color_theme: colorTheme,

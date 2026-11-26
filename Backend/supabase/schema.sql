@@ -1,5 +1,5 @@
 -- ============================================================================
--- LingoLoom — Supabase PostgreSQL Schema, Triggers, Indexes & Row Level Security
+-- LingoLoop — Supabase PostgreSQL Schema, Triggers, Indexes & Row Level Security
 -- ============================================================================
 -- Jalankan file ini di Supabase SQL Editor untuk menyiapkan seluruh skema database.
 

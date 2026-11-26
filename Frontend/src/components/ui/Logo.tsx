@@ -22,7 +22,7 @@ export function Logo({ href = '/', size = 'md' }: LogoProps) {
         <BookOpenCheck className={size === 'sm' ? 'h-5 w-5' : 'h-6 w-6'} strokeWidth={2.5} />
       </span>
       <span className={`${textClass} font-black tracking-tight text-slate-800`}>
-        Lingo<span className="text-[#58CC02]">Loom</span>
+        Lingo<span className="text-[#58CC02]">Loop</span>
       </span>
     </Link>
   );

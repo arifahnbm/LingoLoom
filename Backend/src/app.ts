@@ -39,7 +39,7 @@ export function createApp() {
   app.get('/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      service: 'lingoloom-backend',
+      service: 'lingoloop-backend',
       supabase_configured: isSupabaseConfigured,
       ai_service_url: process.env.AI_SERVICE_URL || 'http://localhost:5000',
     });

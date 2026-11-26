@@ -144,7 +144,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     console.error('[POST /api/stories/generate] Error:', error);
     res.status(502).json({
       error:
-        'Gagal menghubungi LingoLoom AI Service untuk menyusun cerita. Pastikan service AI berjalan di port 5000.',
+        'Gagal menghubungi LingoLoop AI Service untuk menyusun cerita. Pastikan service AI berjalan di port 5000.',
     });
   }
 });

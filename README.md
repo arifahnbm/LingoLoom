@@ -1,6 +1,6 @@
-# LingoLoom — Belajar Kosa Kata Inggris Tanpa Gampang Lupa
+# LingoLoop — Belajar Kosa Kata Inggris Tanpa Gampang Lupa
 
-**LingoLoom** adalah aplikasi web belajar kosa kata bahasa Inggris modern dengan nuansa kartu *tactile* 3D cerah ala Duolingo, menggabungkan:
+**LingoLoop** adalah aplikasi web belajar kosa kata bahasa Inggris modern dengan nuansa kartu *tactile* 3D cerah ala Duolingo, menggabungkan:
 
 - **Unlimited Basic Flashcards + SRS SM-2:** Algoritma *Spaced Repetition* (`again`, `hard`, `good`, `easy`) untuk menjadwalkan ulang kata tepat sebelum kamu lupa.
 - **AI Auto-Fill 5 Detik + Global Vocab Caching:** Ketik 1 kata bahasa Inggris → AI (Google Gemini) otomatis mengisi phonetic IPA, jenis kata, arti bahasa Indonesia, sinonim, dan 2 contoh kalimat. Hasil disimpan ke tabel `vocab_cache` di Supabase untuk menghemat kuota API lintas pengguna.
@@ -12,7 +12,7 @@
 ## Struktur Folder (Monorepo)
 
 ```text
-LingoLoom/
+LingoLoop/
 ├── Frontend/                  # Next.js (App Router) + TypeScript + Tailwind CSS + Framer Motion (Port 3000)
 │   ├── src/app/               # Landing, Auth (/login, /register), Dashboard, Zen Study, Micro-Stories
 │   ├── src/components/        # Komponen Tactile 3D, Flashcard3D, QuickAddVocab, InteractiveStoryReader
@@ -54,7 +54,7 @@ LingoLoom/
 
 Salin file `.env.example` di masing-masing folder:
 
-### A. AI Microservice (`LingoLoom/AI/.env`)
+### A. AI Microservice (`LingoLoop/AI/.env`)
 ```bash
 cp AI/.env.example AI/.env
 ```
@@ -66,7 +66,7 @@ GEMINI_MODEL=gemini-2.5-flash
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4000
 ```
 
-### B. Backend REST API (`LingoLoom/Backend/.env`)
+### B. Backend REST API (`LingoLoop/Backend/.env`)
 ```bash
 cp Backend/.env.example Backend/.env
 ```
@@ -82,7 +82,7 @@ FREE_DAILY_AUTOFILL_LIMIT=5
 FREE_WEEKLY_STORY_LIMIT=1
 ```
 
-### C. Frontend Web App (`LingoLoom/Frontend/.env.local`)
+### C. Frontend Web App (`LingoLoop/Frontend/.env.local`)
 ```bash
 cp Frontend/.env.example Frontend/.env.local
 ```
@@ -97,7 +97,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ## 3. Instalasi Dependensi
 
-Jalankan perintah berikut dari root folder `LingoLoom/`:
+Jalankan perintah berikut dari root folder `LingoLoop/`:
 
 ```bash
 npm --prefix AI install
@@ -109,8 +109,8 @@ npm --prefix Frontend install
 
 ## 4. Menjalankan Ketiga Service Secara Bersamaan di Lokal
 
-### Cara Cepat (Dari Root `LingoLoom/`)
-Kamu bisa pakai `pnpm run` atau `npm run` langsung di terminal dari folder root `LingoLoom/`:
+### Cara Cepat (Dari Root `LingoLoop/`)
+Kamu bisa pakai `pnpm run` atau `npm run` langsung di terminal dari folder root `LingoLoop/`:
 
 ```bash
 pnpm run env       # Salin .env.example -> .env / .env.local (tidak menimpa file yang sudah ada)
@@ -122,7 +122,7 @@ pnpm run build     # Typecheck & build ketiga service
 ```
 
 ### Cara Manual (3 Terminal Terpisah)
-Buka **3 terminal terpisah** di folder root `LingoLoom/`:
+Buka **3 terminal terpisah** di folder root `LingoLoop/`:
 
 - **Terminal 1 — AI Microservice (Port `5000`):**
   ```bash

@@ -17,9 +17,9 @@ import {
 import { Flashcard3D } from '@/components/study/Flashcard3D';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { createClient } from '@/lib/supabase/client';
-import { ApiError, lingoloomApi } from '@/lib/api';
+import { ApiError, lingoloopApi } from '@/lib/api';
 import { speakEnglish, stopSpeaking } from '@/lib/speech';
-import { Flashcard, ReviewRating, SpeechAccent } from '@/types/lingoloom';
+import { Flashcard, ReviewRating, SpeechAccent } from '@/types/lingoloop';
 
 interface RatingButtonConfig {
   rating: ReviewRating;
@@ -77,12 +77,12 @@ export default function StudyZenPage() {
         }
 
         if (isDaily) {
-          const res = await lingoloomApi.getDailyStudyQueue();
+          const res = await lingoloopApi.getDailyStudyQueue();
           setSessionTitle(res.title || 'Review Harian');
           setQueue(res.cards);
           setTotalInDeck(res.cards.length);
         } else {
-          const res = await lingoloomApi.getDeckStudyQueue(deckId, practiceAll);
+          const res = await lingoloopApi.getDeckStudyQueue(deckId, practiceAll);
           setSessionTitle(res.title || 'Sesi Belajar');
           setQueue(res.cards);
           setTotalInDeck(res.total_in_deck ?? res.cards.length);
@@ -148,7 +148,7 @@ export default function StudyZenPage() {
       setSubmitting(true);
       stopSpeaking();
       try {
-        const res = await lingoloomApi.submitReview(currentCard.id, rating);
+        const res = await lingoloopApi.submitReview(currentCard.id, rating);
         setLatestStreak(res.streak_count);
         setReviewedCount((prev) => prev + 1);
         if (rating === 'good' || rating === 'easy') {

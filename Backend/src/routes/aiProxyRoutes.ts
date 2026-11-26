@@ -108,7 +108,7 @@ router.post('/auto-fill', async (req: Request, res: Response) => {
     console.error('[POST /api/ai/auto-fill] Error:', error);
     res.status(502).json({
       error:
-        'Tidak dapat terhubung ke LingoLoom AI Service. Pastikan service AI berjalan di port 5000.',
+        'Tidak dapat terhubung ke LingoLoop AI Service. Pastikan service AI berjalan di port 5000.',
     });
   }
 });

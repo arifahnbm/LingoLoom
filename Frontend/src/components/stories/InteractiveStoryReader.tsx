@@ -12,7 +12,7 @@ import {
 import { TactileButton } from '@/components/ui/TactileButton';
 import { tokenizeStory } from '@/lib/highlight';
 import { speakEnglish, stopSpeaking } from '@/lib/speech';
-import { HighlightedWord, MicroStory, SpeechAccent } from '@/types/lingoloom';
+import { HighlightedWord, MicroStory, SpeechAccent } from '@/types/lingoloop';
 
 interface InteractiveStoryReaderProps {
   story: MicroStory;

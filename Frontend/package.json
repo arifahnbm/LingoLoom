@@ -1,8 +1,8 @@
 {
-  "name": "lingoloom-frontend",
+  "name": "lingoloop-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "LingoLoom Web App — Next.js App Router + TypeScript + Tailwind CSS + Framer Motion",
+  "description": "LingoLoop Web App — Next.js App Router + TypeScript + Tailwind CSS + Framer Motion",
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
